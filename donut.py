@@ -2,6 +2,21 @@ import numpy as np
 import time
 import os
 
+class Plane:
+    def __init__(self, Origin, Normal):
+        self.Normal = Normal / np.linalg.norm(Normal)
+        self.Origin = Origin
+
+    def project(self, point):
+        v = point - self.Origin
+        distance = v.dot(self.Normal)
+        projected_point = point - distance * self.Normal
+
+        return projected_point
+
+    def relative_coords(self, point):
+        return point - self.Origin
+
 class Torus:
     def __init__(self, R, r, center):
         self.R = R
@@ -79,7 +94,7 @@ def create_screen(ROWS, COLS):
 
     return screen
 
-def main(ROWS, COLS, torus, light_source):
+def main(ROWS, COLS, torus, plane, light_source):
     theta = 0
 
     screen = create_screen(ROWS, COLS)
@@ -91,15 +106,15 @@ def main(ROWS, COLS, torus, light_source):
         for u in np.linspace(0, 2*np.pi, 100):
             for v in np.linspace(0, 2*np.pi, 100):
                 torus_point = rotation_matrix @ torus.point_at(u, v)
-                projected_point = project(torus_point)
+                projected_point = plane.project(torus_point)
+                projected_point = plane.relative_coords(projected_point)
                 brightness = brightness_at(torus, u, v, rotation_matrix, light_source)
 
                 distance = abs(torus_point[1])
                 character = brightness_to_character(brightness)
                 (row, col) = plane_coords_to_terminal_coords(projected_point)
 
-                if screen[row][col][0] >= distance:
-                    screen[row][col] = (distance, character) 
+                screen[row][col] = (distance, character) 
 
         theta += 0.1
         print_screen(screen)
@@ -109,7 +124,8 @@ if __name__ == "__main__":
     r = 7
     COLS = ROWS = (R + 2*r) * 2
     torus = Torus(R, r, np.array([0, 6, 0]))
+    plane = Plane(np.array([0,0,0]), np.array([0,1,0]))
 
     light_source = np.array([3, 6, 0])
 
-    main(ROWS, COLS, torus, light_source)
+    main(ROWS, COLS, torus, plane, light_source)
