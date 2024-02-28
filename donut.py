@@ -49,10 +49,10 @@ class Torus:
 def brightness_at(torus, u, v, rotation_matrix, light_source):
     point = rotation_matrix @ torus.point_at(u, v)
     normal = rotation_matrix @ torus.normal_at(u, v)
-    d = point - light_source
+    d = light_source - point
     d = d / np.linalg.norm(d)
 
-    brightness = np.dot(d, -normal)
+    brightness = np.dot(d, normal)
 
     if brightness < 0:
         return 0
